@@ -15,8 +15,10 @@ def create_player(region, summoner_name):
     q.profile_icon_id = json_obj['profileIconId']
     q.summoner_level = json_obj['summonerLevel']
     q.region = region
+    q.last_update = int(json_obj['revisionDate'] / 1000)
     json_obj = json.loads(riot_api_league_by_summoner(region, q.id, api_key))
     assign_player_stats(q, json_obj)
+    return q
 
 
 def update_player(player):
@@ -25,8 +27,10 @@ def update_player(player):
     player.summoner_name = json_obj['name']
     player.profile_icon_id = json_obj['profileIconId']
     player.summoner_level = json_obj['summonerLevel']
+    player.last_update = int(json_obj['revisionDate']/1000)
     json_obj = json.loads(riot_api_league_by_summoner(player.region, player.id, api_key))
     assign_player_stats(player, json_obj)
+    return player
 
 
 def riot_api_summoner_by_name(region, summoner_name, api_key):
@@ -49,7 +53,6 @@ def assign_player_stats(player, json_obj):
             player.ranked_tier = json_obj[x]['tier'].title()
             player.ranked_division = json_obj[x]['rank']
             player.league_points = json_obj[x]['leaguePoints']
-            print(json_obj)
             break
 
     if player.ranked_division is None:
@@ -59,7 +62,6 @@ def assign_player_stats(player, json_obj):
         player.ranked_tier = None
         player.league_points = 0
 
-    player.last_update = 1
     player.save()
 
 

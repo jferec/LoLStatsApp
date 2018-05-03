@@ -29,4 +29,4 @@ class PlayerPostSerializer(serializers.ModelSerializer):
         model = Player
         fields = ('id', 'account_id', 'region', 'summoner_name',
                   'profile_icon_id', 'summoner_level', 'ranked_tier',
-                  'ranked_division', 'ranked_wins', 'ranked_losses', 'games', 'last_update',)
+                  'ranked_division', 'ranked_wins', 'ranked_losses', 'last_update',)
