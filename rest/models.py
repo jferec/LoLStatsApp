@@ -1,6 +1,5 @@
 
 # Create your models here.
-
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
 
@@ -108,7 +107,6 @@ class Player(models.Model):
     ranked_wins = models.PositiveIntegerField()
     ranked_losses = models.PositiveIntegerField()
     league_points = models.PositiveSmallIntegerField()
-    games = models.ManyToManyField(Game, blank=True)
     last_update = models.BigIntegerField()
 
     def __str__(self):

@@ -6,9 +6,8 @@ from rest.riotgames.key import Key
 
 
 def create_game(region, match_id):
-
     api_key = Key().api_key
-    url = 'https://' + region + '.api.riotgames.com/lol/match/v3/timelines/by-match/' + str(match_id)
+    url = 'https://' + str(region) + '.api.riotgames.com/lol/match/v3/timelines/by-match/' + str(match_id)
     header = {"X-Riot-Token": api_key}
     response = requests.get(url, headers=header).text
     json_obj = json.loads(response)
@@ -35,7 +34,7 @@ def create_game(region, match_id):
     #   Clearing individual player lists
         creep_score_player, experience_player, level_player, gold_player = ([] for i in range(4))
 
-    url = 'https://na1.api.riotgames.com/lol/match/v3/matches/' + match_id + '?api_key='
+    url = 'https://' + region + '.api.riotgames.com/lol/match/v3/matches/' + match_id + '?api_key='
     response = requests.get(url + api_key).text
     json_obj = json.loads(response)
 
@@ -78,6 +77,7 @@ def create_game(region, match_id):
         dmg_to_champions_player, dmg_taken_player, kda_player, item_set_player = ([] for i in range(4))
 
     q = Game()
+    q.region = region
     q.id = game_id
     q.game_duration = game_duration
     q.game_date = game_date
@@ -98,3 +98,4 @@ def create_game(region, match_id):
     q.final_vision_score = vision_score_game
     q.created = int(time.time())
     q.save()
+    return q

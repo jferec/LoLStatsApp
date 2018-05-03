@@ -1,48 +1,48 @@
 #generic
+from django.http import HttpResponse
+from rest_framework import status, response
 from rest.models import Game, Player
 from rest_framework import generics, mixins
-from.serializers import GamePostSerializer, PlayerPostSerializer
+from.serializers import PlayerFromNameAndRegionSerializer, GameFromIdAndRegionSerializer, GameGetSerializer, PlayerPostSerializer
 from rest.riotgames.game import create_game
-from rest.riotgames.player import create_player
+from rest.riotgames.player import create_player, update_player
+from django.core import serializers
+from rest_framework.decorators import api_view
 
 
-class GamePostRudView(generics.RetrieveUpdateDestroyAPIView):
-    lookup_field = 'id'
-    queryset = Game.objects.all()
-    serializer_class = GamePostSerializer
-
-    def get_queryset(self):
-        return Game.objects.all()
-
-
-class PlayerPostRudView(generics.RetrieveUpdateDestroyAPIView):
-    lookup_field = 'id'
-    queryset = Player.objects.all()
-    serializer_class = PlayerPostSerializer
+class CreateOrGetGame(generics.ListAPIView):
+    serializer_class = GameGetSerializer
 
     def get_queryset(self):
-        return Player.objects.all()
+        id = self.request.query_params.get('id', None)
+        region = self.request.query_params.get('region', None)
+        queryset = Game.objects.filter(id=id, region=region)
+        if not queryset:
+            create_game(region, id)
+            queryset = Game.objects.filter(id=id, region=region)
+        return queryset
 
 
-class GamePostAPIView(mixins.CreateModelMixin, generics.ListAPIView):
-    lookup_field = 'id'
-    queryset = Game.objects.all()
-    serializer_class = GamePostSerializer
+class CreateOrUpdatePlayer(generics.CreateAPIView):
+    serializer_class = PlayerFromNameAndRegionSerializer
+##FIX DOUBLE REQUESTS!!!!!!!
 
-    def get_queryset(self):
-        query = self.request.GET.get("q")
-        if query is not None:
-            create_game(query)
+    def post(self, request, *args, **kwargs):
+        serializer = PlayerFromNameAndRegionSerializer(data=request.data)
+        if serializer.is_valid():
+            region = request.POST.get("region")
+            summoner_name = request.POST.get("summoner_name")
+            queryset = Player.objects.filter(summoner_name=summoner_name, region=region)
+            if queryset:
+                update_player(queryset)
+                queryset = Player.objects.filter(summoner_name=summoner_name, region=region)
+            else:
+                create_player(region, summoner_name)
+                queryset = Player.objects.filter(summoner_name=summoner_name, region=region)
+
+            return HttpResponse(status.HTTP_201_CREATED)
+        return HttpResponse(status.HTTP_404_NOT_FOUND)
 
 
-class PlayerPostAPIView(mixins.CreateModelMixin, generics.ListAPIView):
-    lookup_fields = 'id', 'euw'
-    queryset = Player.objects.all()
-    serializer_class = PlayerPostSerializer
-
-    def get_queryset(self):
-        query = self.request.GET.get("q")
-        if query is not None:
-            create_player(query)
 
 
